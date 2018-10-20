@@ -131,7 +131,8 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
 
     @Override
     public void onBackPressed() {
-        if (mNavigationDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+
+        if (mNavigationDrawerLayout != null && mNavigationDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             closeDrawer();
         } else {
             super.onBackPressed();
@@ -156,6 +157,7 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
         closeDrawer();
         return false;
     }
+
     protected void showProgressDialog(String title, String message) {
         if (mProgressDialog == null) {
             mProgressDialog = new ProgressDialog(this);

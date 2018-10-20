@@ -18,6 +18,7 @@ import com.android.mh.yasma.ui.adapter.AlbumGridAdapter;
 import com.android.mh.yasma.ui.viewmodel.AlbumsDataViewModel;
 import com.android.mh.yasma.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,6 +26,10 @@ import java.util.List;
  * Created by @author Mubarak Hussain.
  */
 public class AlbumsDetailActivity extends BaseActivity {
+
+    private List<AlbumPhoto> mListAlbum = new ArrayList<>();
+    private AlbumGridAdapter albumGridAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,11 +48,18 @@ public class AlbumsDetailActivity extends BaseActivity {
 
         showProgressDialog(getString(R.string.album_detail), getString(R.string.loding));
 
+        albumGridAdapter = new AlbumGridAdapter(AlbumsDetailActivity.this, mListAlbum);
+        gridView.setAdapter(albumGridAdapter);
 
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
+                AlbumPhoto photo = mListAlbum.get(i);
+                if (photo != null && photo.getUrl() != null) {
+                    Intent intent = new Intent(AlbumsDetailActivity.this, FullScreenActivity.class);
+                    intent.putExtra("IMAGE_URL", photo.getUrl());
+                    startActivity(intent);
+                }
             }
         });
 
@@ -60,7 +72,9 @@ public class AlbumsDetailActivity extends BaseActivity {
                 public void onChanged(@Nullable Resource<List<AlbumPhoto>> listResource) {
                     if (Resource.Status.SUCCESS == listResource.status) {
                         hideProgressDialog();
-                        gridView.setAdapter(new AlbumGridAdapter(AlbumsDetailActivity.this, listResource.data));
+                        mListAlbum.clear();
+                        mListAlbum.addAll(listResource.data);
+                        albumGridAdapter.notifyDataSetChanged();
                     } else if (Resource.Status.NO_INTERNET == listResource.status) {
                         Toast.makeText(AlbumsDetailActivity.this, getString(R.string.no_iternet), Toast.LENGTH_SHORT).show();
                     } else {

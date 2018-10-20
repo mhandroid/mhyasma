@@ -42,7 +42,11 @@ public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.PostViewHold
         if (post != null) {
             postViewHolder.txtTitle.setText(post.getTitle());
             postViewHolder.txtBody.setText(post.getBody());
-            postViewHolder.txtUser.setText(post.getUserDetail().getName());
+            if (post.getUserDetail() != null) {
+                postViewHolder.txtUser.setText(post.getUserDetail().getName());
+            } else {
+                postViewHolder.txtUser.setText("Loading...");
+            }
             postViewHolder.view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

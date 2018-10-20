@@ -5,7 +5,7 @@ import android.support.annotation.Nullable;
 
 /**
  * Generic class that contains data and status about loading data.
- * @param <T>
+ * Created by @author Mubarak Hussain.
  */
 public class Resource<T> {
     @NonNull

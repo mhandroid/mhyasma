@@ -33,7 +33,7 @@ public class AlbumsActivity extends BaseActivity implements AlbumsAdapter.AlbumC
         super.onCreate(savedInstanceState);
         addLayout(R.layout.activity_home);
         setHomeButtonEnabled(true);
-
+        setToolbarTitle(getString(R.string.album));
         final RecyclerView recyclerView = findViewById(R.id.recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
@@ -44,6 +44,7 @@ public class AlbumsActivity extends BaseActivity implements AlbumsAdapter.AlbumC
         recyclerView.setAdapter(albumsAdapter);
 
         albumsViewModel = ViewModelProviders.of(this).get(AlbumsViewModel.class);
+        showProgressDialog(getString(R.string.album), getString(R.string.loding));
         if (Utils.isNetworkAvailable(this)) {
             loadAlbums();
         } else {
@@ -56,7 +57,7 @@ public class AlbumsActivity extends BaseActivity implements AlbumsAdapter.AlbumC
             @Override
             public void onChanged(@Nullable Resource<List<Album>> albums) {
                 Log.d(TAG, "albums list onChanged" + albums);
-
+                hideProgressDialog();
                 if (Resource.Status.SUCCESS == albums.status && albums.data != null) {
                     albumsList.clear();
                     albumsList.addAll(albums.data);

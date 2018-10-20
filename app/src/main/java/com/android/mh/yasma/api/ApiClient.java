@@ -2,9 +2,18 @@ package com.android.mh.yasma.api;
 
 import android.content.Context;
 
+import com.android.mh.yasma.utils.CachIntercepter;
 import com.android.mh.yasma.utils.ConnectivityInterceptor;
 
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Cache;
+import okhttp3.CacheControl;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Response;
+import okhttp3.internal.cache.CacheInterceptor;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -33,7 +42,8 @@ public class ApiClient {
             OkHttpClient client = new OkHttpClient.Builder()
                     .addInterceptor(new ConnectivityInterceptor(context))
                     .addInterceptor(httpLoggingInterceptor)
-
+                    .addNetworkInterceptor(new CachIntercepter())
+                    .cache(getCach(context))
                     .build();
 
             retrofit = new Retrofit.Builder()
@@ -46,5 +56,11 @@ public class ApiClient {
 
         return retrofit;
     }
+
+    private static Cache getCach(Context context) {
+        long cachSize = (5 * 1024 * 1024);
+        return new Cache(context.getCacheDir(), cachSize);
+    }
+
 
 }

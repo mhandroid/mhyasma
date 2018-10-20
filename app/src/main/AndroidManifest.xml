@@ -26,6 +26,10 @@
             android:name=".ui.AlbumsActivity"
             android:launchMode="singleTop" />
         <activity android:name=".ui.AlbumsDetailActivity" />
+        <activity
+            android:name=".ui.FullScreenActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:theme="@style/FullscreenTheme" />
     </application>
 
 </manifest>

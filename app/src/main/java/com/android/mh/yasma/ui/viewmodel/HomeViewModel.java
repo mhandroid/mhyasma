@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.android.mh.yasma.UserRepository;
 import com.android.mh.yasma.model.Post;
+import com.android.mh.yasma.model.Resource;
 import com.android.mh.yasma.model.UserDetail;
 
 import java.util.ArrayList;
@@ -29,10 +30,10 @@ import io.reactivex.schedulers.Schedulers;
  * Created by @author Mubarak Hussain.
  */
 public class HomeViewModel extends AndroidViewModel {
-
+    private final String TAG = HomeViewModel.class.getSimpleName();
     private UserRepository userRepository;
     private CompositeDisposable compositeDisposable;
-    private MutableLiveData<List<Post>> poListMutableLiveData = new MutableLiveData<>();
+    private MutableLiveData<Resource<List<Post>>> poListMutableLiveData = new MutableLiveData<>();
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
@@ -40,7 +41,7 @@ public class HomeViewModel extends AndroidViewModel {
         compositeDisposable = new CompositeDisposable();
     }
 
-    public LiveData<List<Post>> getListOfPost() {
+    public LiveData<Resource<List<Post>>> getListOfPost() {
         userRepository.getListOfPost()
                 .subscribeOn(Schedulers.io())
                 .subscribe(new SingleObserver<List<Post>>() {
@@ -52,6 +53,7 @@ public class HomeViewModel extends AndroidViewModel {
                     @Override
                     public void onSuccess(List<Post> list) {
                         mergeResponse(list);
+                        //poListMutableLiveData.setValue(Resource.success(list));
                     }
 
                     @Override
@@ -83,19 +85,19 @@ public class HomeViewModel extends AndroidViewModel {
 
             @Override
             public void onNext(Post post) {
-                Log.d("MUB", post.getUserDetail() + "");
+                Log.d(TAG, "onNext==" + post.getUserDetail() + "");
                 localCopyPost.add(post);
             }
 
             @Override
             public void onError(Throwable e) {
-
+                poListMutableLiveData.setValue(Resource.<List<Post>>error(e.getMessage()));
             }
 
             @Override
             public void onComplete() {
-                Log.d("MUB", "onComplete====");
-                poListMutableLiveData.setValue(localCopyPost);
+                Log.d(TAG, "onComplete====");
+                poListMutableLiveData.setValue(Resource.success(localCopyPost));
             }
         });
     }
@@ -125,7 +127,8 @@ public class HomeViewModel extends AndroidViewModel {
             @Override
             public void subscribe(final ObservableEmitter<Post> emitter) throws Exception {
                 userRepository.getUserDetail(post.getUserId() + "").
-                        subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                        subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new SingleObserver<UserDetail>() {
                             @Override
                             public void onSubscribe(Disposable d) {
@@ -143,7 +146,8 @@ public class HomeViewModel extends AndroidViewModel {
 
                             @Override
                             public void onError(Throwable e) {
-
+                                Log.d(TAG, "onError===="+e.getMessage());
+                                poListMutableLiveData.postValue(Resource.success(localCopyPost));
                             }
                         });
             }
