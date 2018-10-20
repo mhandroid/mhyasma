@@ -19,12 +19,13 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
+ * View model to handle album detail activity
  * Created by @author Mubarak Hussain.
  */
 public class AlbumsDataViewModel extends AndroidViewModel {
     private final String TAG = AlbumsDataViewModel.class.getSimpleName();
     private UserRepository userRepository;
-    private MutableLiveData<Resource<List<AlbumPhoto>>> palbumMutableLiveData = new MutableLiveData<>();
+    private MutableLiveData<Resource<List<AlbumPhoto>>> albumMutableLiveData = new MutableLiveData<>();
 
     public AlbumsDataViewModel(@NonNull Application application) {
         super(application);
@@ -32,14 +33,19 @@ public class AlbumsDataViewModel extends AndroidViewModel {
     }
 
 
+    /**
+     * Method to fetch list of album detail
+     * @param id
+     * @return
+     */
     public LiveData<Resource<List<AlbumPhoto>>> getAlbumsOfPhotos(String id) {
         userRepository.getAlbumsOfPhotos(id).enqueue(new Callback<List<AlbumPhoto>>() {
             @Override
             public void onResponse(@NonNull Call<List<AlbumPhoto>> call, @NonNull Response<List<AlbumPhoto>> response) {
                 if (response.body() != null && response.isSuccessful())
-                    palbumMutableLiveData.setValue(Resource.success(response.body()));
+                    albumMutableLiveData.setValue(Resource.success(response.body()));
                 else {
-                    palbumMutableLiveData.setValue(Resource.<List<AlbumPhoto>>error("Something went wrong!!"));
+                    albumMutableLiveData.setValue(Resource.<List<AlbumPhoto>>error("Something went wrong!!"));
                 }
             }
 
@@ -48,14 +54,14 @@ public class AlbumsDataViewModel extends AndroidViewModel {
                 //network failure :( inform the user and possibly retry
                 if (t instanceof NoNetworkException) {
                     Log.d(TAG, "No connectivity exception");
-                    palbumMutableLiveData.postValue(Resource.<List<AlbumPhoto>>noInternet(t.getMessage()));
+                    albumMutableLiveData.postValue(Resource.<List<AlbumPhoto>>noInternet(t.getMessage()));
 
                 } else
-                    palbumMutableLiveData.postValue(Resource.<List<AlbumPhoto>>error(t.getMessage()));
+                    albumMutableLiveData.postValue(Resource.<List<AlbumPhoto>>error(t.getMessage()));
 
             }
         });
 
-        return palbumMutableLiveData;
+        return albumMutableLiveData;
     }
 }

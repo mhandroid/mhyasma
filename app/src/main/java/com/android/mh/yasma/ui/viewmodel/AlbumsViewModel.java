@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.android.mh.yasma.UserRepository;
 import com.android.mh.yasma.model.Album;
+import com.android.mh.yasma.model.Resource;
 
 import java.util.List;
 
@@ -22,10 +23,10 @@ import io.reactivex.schedulers.Schedulers;
  * Created by @author Mubarak Hussain.
  */
 public class AlbumsViewModel extends AndroidViewModel {
-
-    UserRepository userRepository;
+    private final String TAG = AlbumsViewModel.class.getSimpleName();
+    private UserRepository userRepository;
     private CompositeDisposable compositeDisposable;
-    private MutableLiveData<List<Album>> albumListMutableLiveData = new MutableLiveData<>();
+    private MutableLiveData<Resource<List<Album>>> albumListMutableLiveData = new MutableLiveData<>();
 
     public AlbumsViewModel(@NonNull Application application) {
         super(application);
@@ -34,32 +35,37 @@ public class AlbumsViewModel extends AndroidViewModel {
     }
 
 
-    public LiveData<List<Album>> getListAlbums() {
+    /**
+     * Method to fetch list of albums
+     * @return
+     */
+    public LiveData<Resource<List<Album>>> getListAlbums() {
         userRepository.getAlbums()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<List<Album>>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-                compositeDisposable.add(d);
-            }
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        compositeDisposable.add(d);
+                    }
 
-            @Override
-            public void onNext(List<Album> albums) {
-                Log.d("MUB","albums list"+albums.size());
-                albumListMutableLiveData.setValue(albums);
-            }
+                    @Override
+                    public void onNext(List<Album> albums) {
+                        Log.d(TAG, "albums list onNext" + albums.size());
+                        albumListMutableLiveData.setValue(Resource.success(albums));
+                    }
 
-            @Override
-            public void onError(Throwable e) {
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, "albums list onError" + e.getMessage());
+                        albumListMutableLiveData.setValue(Resource.<List<Album>>error(e.getMessage()));
+                    }
 
-            }
-
-            @Override
-            public void onComplete() {
-
-            }
-        });
+                    @Override
+                    public void onComplete() {
+                        Log.d(TAG, "albums list onComplete");
+                    }
+                });
 
 
         return albumListMutableLiveData;

@@ -11,8 +11,10 @@ import android.util.Log;
 
 import com.android.mh.yasma.R;
 import com.android.mh.yasma.model.Album;
+import com.android.mh.yasma.model.Resource;
 import com.android.mh.yasma.ui.adapter.AlbumsAdapter;
 import com.android.mh.yasma.ui.viewmodel.AlbumsViewModel;
+import com.android.mh.yasma.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,10 @@ import java.util.List;
  * Created by @author Mubarak Hussain.
  */
 public class AlbumsActivity extends BaseActivity implements AlbumsAdapter.AlbumClickListener {
+    private final String TAG = AlbumsActivity.class.getSimpleName();
+    private AlbumsAdapter albumsAdapter;
+    private AlbumsViewModel albumsViewModel;
+    final List<Album> albumsList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,18 +39,32 @@ public class AlbumsActivity extends BaseActivity implements AlbumsAdapter.AlbumC
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
 
-        final List<Album> albumsList = new ArrayList<>();
-        final AlbumsAdapter albumsAdapter = new AlbumsAdapter(this, albumsList, this);
+
+        albumsAdapter = new AlbumsAdapter(this, albumsList, this);
         recyclerView.setAdapter(albumsAdapter);
 
-        AlbumsViewModel albumsViewModel = ViewModelProviders.of(this).get(AlbumsViewModel.class);
-        albumsViewModel.getListAlbums().observe(this, new Observer<List<Album>>() {
+        albumsViewModel = ViewModelProviders.of(this).get(AlbumsViewModel.class);
+        if (Utils.isNetworkAvailable(this)) {
+            loadAlbums();
+        } else {
+            Utils.showToastMsg(AlbumsActivity.this, getString(R.string.no_iternet));
+        }
+    }
+
+    private void loadAlbums() {
+        albumsViewModel.getListAlbums().observe(this, new Observer<Resource<List<Album>>>() {
             @Override
-            public void onChanged(@Nullable List<Album> albums) {
-                Log.d("MUB", "albums list onChanged" + albums);
-                if (albums != null) {
-                    albumsList.addAll(albums);
+            public void onChanged(@Nullable Resource<List<Album>> albums) {
+                Log.d(TAG, "albums list onChanged" + albums);
+
+                if (Resource.Status.SUCCESS == albums.status && albums.data != null) {
+                    albumsList.clear();
+                    albumsList.addAll(albums.data);
                     albumsAdapter.notifyDataSetChanged();
+                } else if (Resource.Status.NO_INTERNET == albums.status) {
+                    Utils.showToastMsg(AlbumsActivity.this, getString(R.string.no_iternet));
+                } else {
+                    Utils.showToastMsg(AlbumsActivity.this, getString(R.string.went_wrong));
                 }
             }
         });
@@ -53,8 +73,8 @@ public class AlbumsActivity extends BaseActivity implements AlbumsAdapter.AlbumC
     @Override
     public void onItemClick(Album album) {
         Intent intent = new Intent(this, AlbumsDetailActivity.class);
-        intent.putExtra("ALBUM_ID", String.valueOf(album.getId()));
-        intent.putExtra("ALBUM_TITLE",album.getTitle());
+        intent.putExtra(Utils.ALBUM_ID, String.valueOf(album.getId()));
+        intent.putExtra(Utils.ALBUM_TITLE, album.getTitle());
         startActivity(intent);
     }
 }

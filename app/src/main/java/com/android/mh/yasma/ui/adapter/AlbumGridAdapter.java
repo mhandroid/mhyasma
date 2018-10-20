@@ -14,6 +14,7 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 /**
+ * Adapter to show photo in grid
  * Created by @author Mubarak Hussain.
  */
 public class AlbumGridAdapter extends BaseAdapter {

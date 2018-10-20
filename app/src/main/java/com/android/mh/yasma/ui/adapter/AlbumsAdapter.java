@@ -14,11 +14,12 @@ import com.android.mh.yasma.model.Album;
 import java.util.List;
 
 /**
+ * Adapter to create albums list
  * Created by @author Mubarak Hussain.
  */
 public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.AlbumViewHolder> {
     private List<Album> albumsList;
-    LayoutInflater mLayoutInflater;
+    private LayoutInflater mLayoutInflater;
     private AlbumClickListener albumClickListener;
 
     public AlbumsAdapter(Context context, List<Album> list, AlbumClickListener albumClickListener) {
@@ -66,6 +67,9 @@ public class AlbumsAdapter extends RecyclerView.Adapter<AlbumsAdapter.AlbumViewH
     }
 
 
+    /**
+     * Interface to handle albums list item click
+     */
     public interface AlbumClickListener {
         void onItemClick(Album album);
     }

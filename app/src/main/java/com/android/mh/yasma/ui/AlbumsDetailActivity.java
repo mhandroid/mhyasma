@@ -21,6 +21,7 @@ import com.android.mh.yasma.utils.Utils;
 import java.util.List;
 
 /**
+ * Activity to show album details
  * Created by @author Mubarak Hussain.
  */
 public class AlbumsDetailActivity extends BaseActivity {
@@ -32,8 +33,8 @@ public class AlbumsDetailActivity extends BaseActivity {
         setHomeButtonEnabled(false);
 
         Intent intent = getIntent();
-        String id = intent.getStringExtra("ALBUM_ID");
-        String title = intent.getStringExtra("ALBUM_TITLE");
+        String id = intent.getStringExtra(Utils.ALBUM_ID);
+        String title = intent.getStringExtra(Utils.ALBUM_TITLE);
 
         setToolbarTitle(title);
         final GridView gridView = findViewById(R.id.grid_view);
@@ -57,12 +58,12 @@ public class AlbumsDetailActivity extends BaseActivity {
             albumsDetalViewModel.getAlbumsOfPhotos(id).observe(this, new Observer<Resource<List<AlbumPhoto>>>() {
                 @Override
                 public void onChanged(@Nullable Resource<List<AlbumPhoto>> listResource) {
-                    if (Resource.Status.SUCCESS == listResource.status){
+                    if (Resource.Status.SUCCESS == listResource.status) {
                         hideProgressDialog();
                         gridView.setAdapter(new AlbumGridAdapter(AlbumsDetailActivity.this, listResource.data));
-                    }else if(Resource.Status.NO_INTERNET == listResource.status){
+                    } else if (Resource.Status.NO_INTERNET == listResource.status) {
                         Toast.makeText(AlbumsDetailActivity.this, getString(R.string.no_iternet), Toast.LENGTH_SHORT).show();
-                    }else{
+                    } else {
                         Toast.makeText(AlbumsDetailActivity.this, getString(R.string.went_wrong), Toast.LENGTH_SHORT).show();
                     }
                 }
