@@ -22,9 +22,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.PostDetailsActivity" />
-        <activity
-            android:name=".ui.AlbumsActivity"
-            android:launchMode="singleTop" />
         <activity android:name=".ui.AlbumsDetailActivity" />
         <activity
             android:name=".ui.FullScreenActivity"

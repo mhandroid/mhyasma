@@ -15,7 +15,6 @@ import io.reactivex.Single;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
-import retrofit2.http.Query;
 
 /**
  * Interface of api resource
@@ -23,7 +22,7 @@ import retrofit2.http.Query;
 public interface ApiInterface {
 
     @GET("posts")
-    Single<List<Post>> getListOfPost();
+    Observable<List<Post>> getListOfPost();
 
     @GET("/posts/{post_id}")
     Call<PostDetails> getPostDetails(@Path("post_id") String postId);
@@ -42,6 +41,7 @@ public interface ApiInterface {
 
     @GET("/users/{user_id}")
     Single<UserDetail> getUserDetails(@Path("user_id") String userId);
+
     @GET("/users")
     Observable<List<UserDetail>> getUsers();
 }

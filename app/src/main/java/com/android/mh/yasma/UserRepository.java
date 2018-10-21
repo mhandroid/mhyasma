@@ -40,13 +40,15 @@ public class UserRepository {
         return sUserReposatory;
     }
 
-    public Single<List<Post>> getListOfPost(){
+    public Observable<List<Post>> getListOfPost(){
         return apiInterface.getListOfPost();
     }
+
 
     public Single<UserDetail> getUserDetail(String id){
         return apiInterface.getUserDetails(id);
     }
+
     public Observable<List<UserDetail>> getUsers(){
         return apiInterface.getUsers();
     }

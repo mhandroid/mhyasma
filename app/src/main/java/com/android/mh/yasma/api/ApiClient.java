@@ -42,7 +42,7 @@ public class ApiClient {
             OkHttpClient client = new OkHttpClient.Builder()
                     .addInterceptor(new ConnectivityInterceptor(context))
                     .addInterceptor(httpLoggingInterceptor)
-                    .addNetworkInterceptor(new CachIntercepter())
+
                     .cache(getCach(context))
                     .build();
 

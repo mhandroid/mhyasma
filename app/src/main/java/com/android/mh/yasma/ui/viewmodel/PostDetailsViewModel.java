@@ -33,6 +33,11 @@ public class PostDetailsViewModel extends AndroidViewModel {
         userRepository = UserRepository.getInstance(application);
     }
 
+    /**
+     * Method to get post details
+     * @param postId
+     * @return
+     */
     public LiveData<Resource<PostDetails>> getPostDetails(final String postId) {
         Call<PostDetails> call = userRepository.getPostDetails(postId);
         call.enqueue(new Callback<PostDetails>() {
@@ -59,6 +64,11 @@ public class PostDetailsViewModel extends AndroidViewModel {
         return postDetalsMutable;
     }
 
+    /**
+     * Method to get post comments
+     * @param postId
+     * @return
+     */
     public LiveData<Resource<List<PostComments>>> getPostComments(final String postId) {
         Call<List<PostComments>> call = userRepository.getPostComments(postId);
         call.enqueue(new Callback<List<PostComments>>() {

@@ -1,26 +1,33 @@
 package com.android.mh.yasma.ui;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import com.android.mh.yasma.R;
+import com.android.mh.yasma.ui.fragment.AlbumsFragment;
+import com.android.mh.yasma.ui.fragment.PostFragment;
+import com.android.mh.yasma.utils.Utils;
 
 /**
+ * Base activity foa handle common functionality
  * Created by @author Mubarak Hussain.
  */
 public abstract class BaseActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -46,6 +53,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
     }
 
 
+    /**
+     * Method to initialize drawer layout
+     */
     protected void initDrawerLayout() {
 
         mDrawerToggle = new ActionBarDrawerToggle(this, mNavigationDrawerLayout, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -55,6 +65,10 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
     }
 
 
+    /**
+     * Method to enable disable home button
+     * @param isEnabled
+     */
     protected void setHomeButtonEnabled(boolean isEnabled) {
         mNavigationDrawerLayout = findViewById(R.id.drawer_layout);
         if (mActionBar != null) {
@@ -71,6 +85,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
         }
     }
 
+    /**
+     * Method to setup action bar
+     */
     protected void setupActionBar() {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         if (mToolbar != null) {
@@ -82,12 +99,20 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
         }
     }
 
+    /**
+     * Method to set toolbar title
+     * @param title
+     */
     protected void setToolbarTitle(String title) {
         if (mActionBar != null) {
             mActionBar.setTitle(title);
         }
     }
 
+    /**
+     * Method to add layout with extended activity
+     * @param layoutId
+     */
     protected void addLayout(int layoutId) {
         try {
             FrameLayout mainContainer = (FrameLayout) findViewById(R.id.main_container_layout);
@@ -99,10 +124,9 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
         }
     }
 
-    private void openDrawer(int gravity) {
-        mNavigationDrawerLayout.openDrawer(gravity);
-    }
-
+    /**
+     * Method to close drawer layout
+     */
     public void closeDrawer() {
         if (mNavigationDrawerLayout != null) {
             mNavigationDrawerLayout.closeDrawer(GravityCompat.START);
@@ -144,13 +168,23 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
         int id = menuItem.getItemId();
         switch (id) {
             case R.id.nav_Post:
-                Intent intent = new Intent(this, HomeActivity.class);
-                startActivity(intent);
+                if (Utils.isNetworkAvailable(this)) {
+                    showProgressDialog(getString(R.string.app_name), getString(R.string.loding));
+                    replaceFragment(PostFragment.newInstance(), false, "Post_fragment", true);
+                } else {
+                    Toast.makeText(this, getString(R.string.no_iternet), Toast.LENGTH_SHORT).show();
+                    hideProgressDialog();
+                }
                 break;
 
             case R.id.nav_Albums:
-                Intent intentAlbum = new Intent(this, AlbumsActivity.class);
-                startActivity(intentAlbum);
+                if (Utils.isNetworkAvailable(this)) {
+                    showProgressDialog(getString(R.string.album), getString(R.string.loding));
+                    replaceFragment(AlbumsFragment.newInstance(), false, "albums_fragment", true);
+                } else {
+                    Toast.makeText(this, getString(R.string.no_iternet), Toast.LENGTH_SHORT).show();
+                    hideProgressDialog();
+                }
                 break;
         }
 
@@ -158,6 +192,11 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
         return false;
     }
 
+    /**
+     * Method to show progress bar
+     * @param title
+     * @param message
+     */
     protected void showProgressDialog(String title, String message) {
         if (mProgressDialog == null) {
             mProgressDialog = new ProgressDialog(this);
@@ -169,11 +208,54 @@ public abstract class BaseActivity extends AppCompatActivity implements Navigati
         mProgressDialog.show();
     }
 
+    /**
+     * Method hide progress bar
+     */
     protected void hideProgressDialog() {
         if (mProgressDialog != null) {
             mProgressDialog.hide();
-            mProgressDialog.dismiss();
         }
+    }
+
+    /**
+     * Mehtod to add fragment
+     * @param fragment
+     * @param isAddToBackStack
+     * @param fragmentTag
+     */
+    protected void addFragment(Fragment fragment, boolean isAddToBackStack, String fragmentTag) {
+        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+        if (TextUtils.isEmpty(fragmentTag)) {
+            fragmentTransaction.add(R.id.main_container_layout, fragment);
+        } else {
+            fragmentTransaction.add(R.id.main_container_layout, fragment, fragmentTag);
+        }
+        if (isAddToBackStack) {
+            fragmentTransaction.addToBackStack(fragmentTag);
+        }
+
+        fragmentTransaction.commitAllowingStateLoss();
+    }
+
+    /**
+     * Method to replace fragment
+     * @param fragment
+     * @param isAddToBackStack
+     * @param fragmentTag
+     * @param showAnim
+     */
+    public void replaceFragment(Fragment fragment, boolean isAddToBackStack, String fragmentTag, boolean showAnim) {
+        final FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+        if (TextUtils.isEmpty(fragmentTag)) {
+            fragmentTransaction.replace(R.id.main_container_layout, fragment);
+        } else {
+            fragmentTransaction.replace(R.id.main_container_layout, fragment, fragmentTag);
+        }
+        if (isAddToBackStack) {
+            fragmentTransaction.addToBackStack(fragmentTag);
+        }
+
+        fragmentTransaction.commitAllowingStateLoss();
     }
 
 }

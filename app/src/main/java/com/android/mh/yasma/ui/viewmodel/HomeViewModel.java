@@ -12,7 +12,6 @@ import com.android.mh.yasma.model.Post;
 import com.android.mh.yasma.model.Resource;
 import com.android.mh.yasma.model.UserDetail;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
@@ -33,7 +32,7 @@ public class HomeViewModel extends AndroidViewModel {
     private final String TAG = HomeViewModel.class.getSimpleName();
     private UserRepository userRepository;
     private CompositeDisposable compositeDisposable;
-    private MutableLiveData<Resource<List<Post>>> poListMutableLiveData = new MutableLiveData<>();
+    private MutableLiveData<Resource<Post>> poListMutableLiveData = new MutableLiveData<>();
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
@@ -41,86 +40,55 @@ public class HomeViewModel extends AndroidViewModel {
         compositeDisposable = new CompositeDisposable();
     }
 
-    public LiveData<Resource<List<Post>>> getListOfPost() {
+    public LiveData<Resource<Post>> getListOfPost() {
         userRepository.getListOfPost()
-                .subscribeOn(Schedulers.io())
-                .subscribe(new SingleObserver<List<Post>>() {
+                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .flatMap(new Function<List<Post>, Observable<Post>>() {
+                    @Override
+                    public Observable<Post> apply(List<Post> list) throws Exception {
+                        return Observable.fromIterable(list);
+                    }
+                })
+                .concatMapEager(new Function<Post, Observable<Post>>() {
+                    @Override
+                    public Observable<Post> apply(Post post) throws Exception {
+                        Log.d("MUB", post.getUserId() + "");
+                        return getUserDetail(post);
+                    }
+                })
+                .subscribe(new Observer<Post>() {
                     @Override
                     public void onSubscribe(Disposable d) {
                         compositeDisposable.add(d);
                     }
 
                     @Override
-                    public void onSuccess(List<Post> list) {
-                        mergeResponse(list);
-                        //poListMutableLiveData.setValue(Resource.success(list));
+                    public void onNext(Post post) {
+                        Log.d("MUB", post.getId() + "POST");
+                        poListMutableLiveData.setValue(Resource.success(post));
                     }
 
                     @Override
                     public void onError(Throwable e) {
+                        poListMutableLiveData.setValue(Resource.<Post>error(e.getMessage()));
+                    }
+
+                    @Override
+                    public void onComplete() {
 
                     }
                 });
 
 
         return poListMutableLiveData;
+
     }
 
-    private List<Post> localCopyPost = new ArrayList<>();
-
-    private void mergeResponse(List<Post> list) {
-        createPostObservable(list)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .concatMap(new Function<Post, Observable<Post>>() {
-                    @Override
-                    public Observable<Post> apply(Post post) throws Exception {
-                        return getUserDetail(post);
-                    }
-                }).subscribe(new Observer<Post>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-                compositeDisposable.add(d);
-            }
-
-            @Override
-            public void onNext(Post post) {
-                Log.d(TAG, "onNext==" + post.getUserDetail() + "");
-                localCopyPost.add(post);
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                poListMutableLiveData.setValue(Resource.<List<Post>>error(e.getMessage()));
-            }
-
-            @Override
-            public void onComplete() {
-                Log.d(TAG, "onComplete====");
-                poListMutableLiveData.setValue(Resource.success(localCopyPost));
-            }
-        });
-    }
-
-
-    private Observable<Post> createPostObservable(final List<Post> list) {
-        return Observable.create(new ObservableOnSubscribe<Post>() {
-            @Override
-            public void subscribe(ObservableEmitter<Post> emitter) throws Exception {
-                for (Post post : list) {
-                    if (!emitter.isDisposed()) {
-                        emitter.onNext(post);
-                    }
-
-                }
-                if (!emitter.isDisposed()) {
-                    emitter.onComplete();
-                }
-            }
-        }).subscribeOn(Schedulers.io());
-    }
-
-
+    /**
+     * Mthode to fetch user details of created post
+     * @param post
+     * @return
+     */
     private Observable<Post> getUserDetail(final Post post) {
         return Observable.create(new ObservableOnSubscribe<Post>() {
 
@@ -146,15 +114,16 @@ public class HomeViewModel extends AndroidViewModel {
 
                             @Override
                             public void onError(Throwable e) {
-                                Log.d(TAG, "onError===="+e.getMessage());
-                                poListMutableLiveData.postValue(Resource.success(localCopyPost));
+                                Log.d(TAG, "onError====" + e.getMessage());
+                                post.setUserDetail(null);
+                                emitter.onNext(post);
+                                emitter.onComplete();
                             }
                         });
             }
         });
 
     }
-
 
     @Override
     protected void onCleared() {
